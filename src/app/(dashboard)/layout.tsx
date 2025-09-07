@@ -25,7 +25,7 @@ const DashboardLayout = async ({children}: DashboardLayoutProps) => {
     })
 
   return (
-    <main className='flex h-screen bg-background'>
+    <main className='flex h-screen bg-gray-100'>
         
         <div className='hidden lg:block'>
             <Sidebar stores={stores} user={formatterUser}/>

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Badge } from './ui/badge'
 import { Separator } from './ui/separator'
 import { useStoreDashboard } from '@/store/use-store-dashboard'
-import { useParams, usePathname } from 'next/navigation'
+import { useParams, usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import StoreSwitcher from './store-switcher'
 import axios from 'axios'
@@ -35,6 +35,7 @@ const Sidebar = ({onNavigate,stores, user}:SidebarProps) => {
     const { section,sectionActive } = useStoreDashboard()
     const {storeId} = useParams()
     const pathName = usePathname()
+    const router = useRouter()
 
     const menuItems = [
         { id: "dashboard", 
@@ -80,11 +81,12 @@ const Sidebar = ({onNavigate,stores, user}:SidebarProps) => {
 
     const handleLogout =  async () => {
       try {
-        const body = await axios.post('/auth/logout')
+        const body = await axios.post('/api/auth/logout')
         const res = body.data
+        console.log(res)
         
         if(res.success){
-          window.location.replace('/login?mode=sign-in')
+          router.push('/login?mode=sign-in')
           toast.success('Terimakasih')
         }
       } catch (error) {
@@ -113,7 +115,7 @@ const Sidebar = ({onNavigate,stores, user}:SidebarProps) => {
           ): (
           <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
             <Star className="w-3 h-3 mr-1" />
-            {stores[0].name}
+            Nanti diganti untuk admin
           </Badge>
 
           )}
@@ -212,7 +214,7 @@ const Sidebar = ({onNavigate,stores, user}:SidebarProps) => {
                 Account Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => handleLogout}>
+              <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </DropdownMenuItem>

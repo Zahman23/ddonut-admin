@@ -13,8 +13,9 @@ export async function requiredAuth(){
     // Ambil role dari firestore
     const snap = await adminDb.collection("users").doc(decoded.uid).get()
     const role = snap.exists ? snap.data()?.role : null
+    
 
-    return {uid: decoded.uid, email: decoded.email, role}
+    return {uid: decoded.uid, email: decoded.email, role }
 }
 
 export function requiredAdmin(role?:string){

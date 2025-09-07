@@ -66,5 +66,5 @@ export async function verifySessionFromUi() {
 // 🚪 hapus session (logout)
 export async function clearSession() {
   const cookieStore = await cookies();
-    cookieStore.set("session", "", { maxAge: 0, path: "/" });
+    cookieStore.set("session", '');
 }

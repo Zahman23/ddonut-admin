@@ -16,7 +16,7 @@ const AuthContainer = () => {
     // Sync mode with URL
     useEffect(() => {
         const urlMode = searchParams.get('mode')
-        if(urlMode === 'sign-in' || urlMode === 'sign-up'){
+        if(urlMode === 'sign-in'){
             if(urlMode !== mode){
                 isUpdatingFromUrl.current = true
                 setMode(urlMode)
@@ -43,15 +43,13 @@ const AuthContainer = () => {
 
     const renderForm = () => {
         switch(mode){
-            case 'sign-up':
-                return <SignUpForm/>
             default:
                 return <SignInForm/>
         }
     }
 
   return (
-        <div className='w-full max-w-md'>
+        <div className='w-full max-w-md '>
             <Card className='border-0 shadow-lg'>
                 <CardContent className='p-8 relative overflow-hidden'>
                     {renderForm()}

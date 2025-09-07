@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function POST() {
+export async function GET() {
   const cookieStore = await cookies();
 
   // Hapus cookie "session"
@@ -14,5 +14,5 @@ export async function POST() {
     expires: new Date(0), // langsung expired
   });
 
-  return NextResponse.json({ success: true, message: "Logged out" });
+  return NextResponse.redirect(new URL("/login?mode=sign-in", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"));;
 }

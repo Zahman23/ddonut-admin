@@ -8,40 +8,58 @@ interface ParamsProps{
 
 export async function POST(req: Request) {
     try {
-        const session = await requiredAuth()
-        requiredSuperAdmin(session.role)
-
-        const {userId, role, storeId} = await req.json()
-
-        if(!storeId){
-            return NextResponse.json({ success: false, error: "storeId required" }, { status: 400 });
+        const {uid, email,role } = await requiredAuth()
+        
+        if(role !== 'owner' && role !== 'superAdmin'){
+            return NextResponse.json(
+        { success: false, message: "Forbidden" },
+        { status: 403 }
+      );
         }
 
-        if(!userId){
-            return NextResponse.json({ success: false, error: "UserId required" }, { status: 400 });
-        }
+        const {userId, role: assignRole, storeId} = await req.json()
 
-        if(role !== 'admin' && role !== 'superAdmin' ){
-            return NextResponse.json({ success: false, error: "Role required Admin or SuperAdmin" }, { status: 400 });
-        }
+        if (!storeId || !userId || !assignRole) {
+      return NextResponse.json(
+        { success: false, message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
-        const storeUser = await prismaDb.storeUser.create({
-            data: {
+    const existing = await prisma?.storeUser.findUnique({
+        where:{
+            storeId_userId:{
                 storeId,
-                userId,
-                role
+                userId
             }
-        })
-
-        return NextResponse.json({
-            success: true,
-            storeUser
-        },
-    {
-        status: 200
+        }
     })
-    } catch (err) {
-        console.error("[ASSIGN_ADMIN]", err);
-        return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
+
+    if(existing){
+         return NextResponse.json(
+        { success: false, message: "User already assigned to this store" },
+        { status: 400 }
+      );
+    }
+
+    const storeUser = await prismaDb.storeUser.create({
+        data: {
+            storeId,
+            userId,
+            role:assignRole
+        }
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: "User assigned to store successfully",
+      data: storeUser,
+    });
+    } catch (err:any) {
+        console.error("Assign User Error:", err);
+    return NextResponse.json(
+      { success: false, message: err.message || "Internal Server Error" },
+      { status: err.status || 500 }
+    );
     }
 }

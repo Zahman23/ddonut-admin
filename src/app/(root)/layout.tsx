@@ -1,5 +1,8 @@
+import { requiredAuth } from '@/lib/auth-server'
 import prismaDb from '@/lib/prisma'
+import { clearSession } from '@/lib/session'
 import { requireRoleAccess } from '@/lib/store-service'
+import axios from 'axios'
 import { redirect } from 'next/navigation'
 import React from 'react'
 
@@ -9,25 +12,28 @@ interface SetupPageProps{
 }
 
 const SetupPage = async ({children, params} : SetupPageProps) => {
-    const storeId = (await params).storeId
+   // 🔒 Auth check (client masuk dashboard)
+  const session = await requiredAuth();
 
-    await requireRoleAccess()
+  if(!session){
+    redirect('/api/auth/logout')
+  }
 
-    const storeUser = await prismaDb.store.findFirst({
-        where: {
-            id: storeId
-        },
-    })
+  // ✅ Kalau superAdmin atau owner → langsung lolos
+  if (session.role === "superAdmin" || session.role === "owner") {
+    return <>{children}</>;
+  }
 
-    if(storeUser){
-        redirect(`/${storeUser.id}`)
-    }
+  // ✅ Kalau admin → wajib punya assign StoreUser
+  const assignedStore = await prismaDb.storeUser.findFirst({
+    where: { userId: session.uid },
+  });
 
-  return (
-    <>
-        {children}
-    </>
-  )
+  if (!assignedStore) {
+    redirect('/api/auth/logout')
+  }
+
+  return <>{children}</>;
 }
 
 export default SetupPage
