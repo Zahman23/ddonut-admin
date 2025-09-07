@@ -14,6 +14,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String      @id @default(uuid())
+  email     String      @unique
+  name      String?
+  role      String      // "owner" | "admin" | "client"
+  stores    StoreUser[] // relasi ke banyak store
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
 model Store {
   id         String       @id @default(uuid())
   name       String
@@ -28,10 +38,11 @@ model Store {
 model StoreUser {
   id        String   @id @default(uuid())
   storeId   String
-  userId    String   // clerk userId
+  userId    String
   role      String   // "admin" | "superAdmin"
 
-  store     Store    @relation(fields: [storeId], references: [id])
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

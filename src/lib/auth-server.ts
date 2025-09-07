@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { adminAuth, adminDb } from "./firebase-admin";
-import { email } from "zod";
 
 export async function requiredAuth(){
     const cookie = await cookies()
@@ -8,7 +7,7 @@ export async function requiredAuth(){
     if(!token) throw Object.assign(new Error("Unauthorized"), {status: 401})
 
     // Verifikasi toke Firebase
-    const decoded = await adminAuth.verifyIdToken(token).catch(() => null)
+    const decoded = await adminAuth.verifySessionCookie(token,true).catch(() => null)
     if(!decoded) throw Object.assign(new Error("Unauthorized"), {status: 401})
 
     // Ambil role dari firestore

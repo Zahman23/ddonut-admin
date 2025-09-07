@@ -6,10 +6,11 @@ export const signInSchema = z.object({
 })
 
 export const signUpSchema = z.object({
+    name: z.string().min(6, "Name must be at leat 6 characters").max(255),
     email: z.email("Please enter a valid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
-    role: z.enum(['superAdmin','admin', 'client'])
+    role: z.enum(['owner','superAdmin','admin', 'client'])
 })
 .refine((data => data.password === data.confirmPassword), {
     message: "Passwords do not match",

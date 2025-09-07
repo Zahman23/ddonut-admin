@@ -6,23 +6,29 @@ import { Button } from "@/components/ui/button"
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "./password-input"
-import { SocialLoginButtons } from "./social-login-buttons"
 import { signUpSchema, type SignUpFormData } from "@/schemas/auth/auth-schemas"
 import { useAuthStore } from "@/store/auth/auth-store"
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
-import { auth, db } from "@/lib/firebase"
-import { doc, getDoc, setDoc } from "firebase/firestore"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import axios from "axios"
+import toast from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
-export const  SignUpForm =() => {
+interface SignUpFormProps{
+  onClose: () => void
+}
+
+export const  SignUpForm =({onClose}:SignUpFormProps) => {
   const { isLoading, error, setLoading, setError, setMode, setEmail,reset } = useAuthStore()
+  const router = useRouter()
 
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
+      name:'',
       email: "",
       password: "",
       confirmPassword: "",
-      role: "superAdmin",
+      role: "admin",
     },
   })
 
@@ -32,25 +38,17 @@ export const  SignUpForm =() => {
     setError(null)
 
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-
-      const output = await res.json()
-
-      console.log(output)
-
-      if(!res.ok){
-        form.setError('email', {message: 'Email sudah terdaftar'})
+      const res = await axios.post('/api/admin/users',data)
+      const body = res.data
+      if(body.success){
+        console.log(body)
+        onClose()
+        router.refresh()
+        toast.success("User berhasil dibuat")
+      }else{
         form.resetField('password')
         form.resetField('confirmPassword')
-        return
-      }else{
-        form.reset()
+        setError(body.error)
       }
     } catch (error) {
       console.log("Network error, please try again.");
@@ -59,56 +57,37 @@ export const  SignUpForm =() => {
     }
   }
 
-  const handleSocialLogin = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const provider = new GoogleAuthProvider()
-      const userCred = await signInWithPopup(auth, provider)
-      const user = userCred.user
-
-      // cek apakah user sudah ada
-      const userRef = doc(db, "users", user.uid)
-      const userSnap = await getDoc(userRef)
-
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          role: "client",
-          createdAt: new Date(),
-        })
-      }
-
-      const token = await user.getIdToken()
-      await fetch("/api/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: token }),
-      })
-    } catch (err: any) {
-      setError(err.message || "Google sign up gagal")
-    } finally {
-      setLoading(false)
-      reset()
-    }
-  }
-
   return (
-    <div className="slide-in-right">
+    <div>
       <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance">Create your account</h1>
-          <p className="text-sm text-muted-foreground text-pretty">Sign up to get started with your new account</p>
-        </div>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <Input
+                    type="text"
+                    placeholder="Enter full name"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email *</FormLabel>
                   <Input
                     type="email"
                     placeholder="Enter your email"
@@ -128,7 +107,7 @@ export const  SignUpForm =() => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Password *</FormLabel>
                   <PasswordInput
                     placeholder="Create a password"
                     value={field.value}
@@ -147,7 +126,7 @@ export const  SignUpForm =() => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>Confirm Password *</FormLabel>
                   <PasswordInput
                     placeholder="Confirm your password"
                     value={field.value}
@@ -161,6 +140,26 @@ export const  SignUpForm =() => {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role *</FormLabel>
+                  <Select defaultValue={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="owner">Owner</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {error && <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -169,7 +168,7 @@ export const  SignUpForm =() => {
           </form>
         </Form>
 
-        <div className="relative">
+        {/* <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
@@ -181,14 +180,7 @@ export const  SignUpForm =() => {
         <SocialLoginButtons
           onGoogleLogin={() => handleSocialLogin()}
           isLoading={isLoading}
-        />
-
-        <div className="text-center text-sm">
-          <span className="text-muted-foreground">Already have an account? </span>
-          <Button variant="link" className="p-0 h-auto font-medium" onClick={() => setMode("sign-in")}>
-            Sign in
-          </Button>
-        </div>
+        /> */}
       </div>
     </div>
   )

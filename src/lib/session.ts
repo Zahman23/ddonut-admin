@@ -40,6 +40,29 @@ export async function verifySession(req: NextRequest) {
   }
 }
 
+// 🔎 verifikasi session untuk UI
+
+export async function verifySessionFromUi() {
+  const cookieStore = await cookies()
+  const sessionToken = cookieStore.get('session')?.value
+
+  if(!sessionToken) return null
+  
+  try {
+    const decoded = await adminAuth.verifySessionCookie(sessionToken, true)
+    const userDoc = await adminDb.collection('users').doc(decoded.uid).get()
+    const role = userDoc.exists ? userDoc.data()?.role : null
+
+    return {
+        uid: decoded.uid,
+        email: decoded.email,
+        role
+      }
+    } catch (err: any) {
+      return null
+  }
+}
+
 // 🚪 hapus session (logout)
 export async function clearSession() {
   const cookieStore = await cookies();

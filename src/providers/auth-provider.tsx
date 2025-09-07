@@ -18,29 +18,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     let mounted = true;
     const run = async () => {
       try {
-        const { data } = await axios.get("/api/auth/login");
-        if (!mounted) return;
-
-        setUser(data.user ?? null);
-
-        const isAdminPage =
-          pathname === "/" ||
-          pathname.startsWith("/category") ||
-          pathname.startsWith("/banner") ||
-          pathname.startsWith("/product");
-
-        if (isAdminPage) {
-          if (!data.user || (data.user.role !== "admin" && data.user.role !== "superAdmin")) {
-            router.replace("/login?mode=sign-in");
-            return;
-          }
-        }
-
-        // ⛔️ Jangan tampilkan /login kalau sudah login
-        if ((pathname === "/login" || pathname === '/login?mode=sign-in') && data.user && (data.user.role === "admin" || data.user.role === "superAdmin")) {
-          router.replace("/");
-        }
-      } finally {
+        const {data} = await axios.get('/api/auth/login')
+        if(mounted) setUser(data.user ?? null)
+      } catch{
+        if(mounted) setUser(null)
+      }   
+      finally {
         if (mounted) setLoading(false);
       }
     };

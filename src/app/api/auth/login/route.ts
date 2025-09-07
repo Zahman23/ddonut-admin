@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminAuth, adminDb } from "@/lib/firebase-admin";
 import { cookies } from "next/headers";
 import { requiredAuth } from "@/lib/auth-server";
 
@@ -31,13 +31,16 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 200 });
     }
 
+    const expiresIn = 1000 * 60 * 60 * 24 * 7
+    const sessionCookie = await adminAuth.createSessionCookie(idToken, {expiresIn});
+
     // Simpan token ke cookie (plain string, HttpOnly)
-    (await cookies()).set("session", idToken, {
+    (await cookies()).set("session", sessionCookie, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-        maxAge: 60 * 60 * 24,
+        maxAge: expiresIn / 1000,
     })
 
     return NextResponse.json({
