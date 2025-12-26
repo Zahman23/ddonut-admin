@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prismaDb from "@/lib/prisma";
-import { requiredAuth, requiredSuperAdmin } from "@/lib/auth-server";
+import { requiredAuth } from "@/lib/auth-server";
 
 interface ParamsProps{
     params: Promise<{storeId: string}>

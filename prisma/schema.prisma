@@ -27,10 +27,22 @@ model User {
 model Store {
   id         String       @id @default(uuid())
   name       String
-  users      StoreUser[]  // relasi ke banyak user
-  // banners    Banner[]     @relation("StoreToBanner")
-  // categories Category[]   @relation("StoreToCategory")
-  // products   Product[]    @relation("StoreToProduct")
+  users      StoreUser[]  
+
+  // --- info tampil di UI ---
+  tagline String?
+  heading String?
+  description String?
+  phone String?
+  whatsapp String?
+
+  // --- Lokasi ---
+  address   String?
+  city      String?
+  latitude  Float?
+  longitude Float?
+
+
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 }

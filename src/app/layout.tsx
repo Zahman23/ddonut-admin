@@ -28,13 +28,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+        className={`${geistSans.className} ${geistMono.className} antialiased bg-gray-50`}
       >
-        <AuthProvider>
-          <ToastProvider/>
-          <ModalProvider/>
-          {children}
-        </AuthProvider>
+        <ToastProvider />
+        <ModalProvider />
+        {children}
       </body>
     </html>
   );

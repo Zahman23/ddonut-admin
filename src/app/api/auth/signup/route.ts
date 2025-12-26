@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
-import { requiredAuth, requiredSuperAdmin } from "@/lib/auth-server";
+import { requiredAuth } from "@/lib/auth-server";
 
 export async function POST(req: Request) {
   try {
     const me = await requiredAuth();
-    requiredSuperAdmin(me.role)
+    if (me.role !== "superAdmin" && me.role !== "owner") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
 
     const { email, password, role } = await req.json();
 
@@ -17,7 +19,10 @@ export async function POST(req: Request) {
       existingUser = null;
     }
     if (existingUser) {
-      return NextResponse.json({ message: "Email already registered" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Email already registered" },
+        { status: 400 }
+      );
     }
 
     // 2. buat user baru di Firebase Auth
@@ -41,5 +46,5 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-    return NextResponse.json({message: 'Berfungsi'})
+  return NextResponse.json({ message: "Berfungsi" });
 }

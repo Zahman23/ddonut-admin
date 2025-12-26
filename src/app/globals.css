@@ -5,15 +5,15 @@
 
 :root {
   /* Updated color tokens to match the modern authentication design brief */
-  --background: oklch(1 0 0); /* Pure white */
+  --background: oklch(97.015% 0.00011 271.152); /* Pure white */
   --foreground: oklch(0.35 0 0); /* Dark gray for text */
-  --card: oklch(0.99 0.005 15); /* Light background for cards */
+  --card: oklch(100% 0.00011 271.152); /* Light background for cards */
   --card-foreground: oklch(0.35 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.35 0 0);
-  --primary: oklch(0.55 0.22 25); /* Red primary color */
+  --primary: oklch(0.75 0.15 65); /* Red primary color */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.75 0.15 65); /* Orange accent */
+  --secondary: oklch(0.55 0.22 25); /* Orange accent */
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.98 0 0);
   --muted-foreground: oklch(0.55 0 0);
@@ -23,7 +23,7 @@
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.92 0 0);
   --input: oklch(1 0 0);
-  --ring: oklch(0.55 0.22 25 / 0.5);
+  --ring: oklch(0.75 0.15 65 / 0.5);
   --chart-1: oklch(0.55 0.22 25);
   --chart-2: oklch(0.75 0.15 65);
   --chart-3: oklch(0.75 0.15 65);
@@ -37,12 +37,12 @@
   --sidebar-accent: oklch(0.75 0.15 65);
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.55 0.22 25 / 0.5);
+  --sidebar-ring: oklch(0.75 0.15 65 / 0.5);
 }
 
 .dark {
   --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
+  --foreground: oklch(90.365% 0.0001 271.152);
   --card: oklch(0.145 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);

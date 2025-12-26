@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet'
 import { Button } from './ui/button'
 import { Menu } from 'lucide-react'
 import Sidebar from './sidebar'
@@ -16,6 +16,7 @@ const SidebarMobile = () => {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
+          <SheetTitle className='hidden'></SheetTitle>
           <Sidebar onNavigate={() => setSidebarOpen(false)} />
         </SheetContent>
       </Sheet>

@@ -1,18 +1,25 @@
-import { verifySessionFromUi } from '@/lib/session'
-import { redirect } from 'next/navigation'
-import React from 'react'
+// src/app/login/layout.tsx
+"use client";
 
-const AuthLogin = async ({children} : {children: React.ReactNode}) => {
-  const session = await verifySessionFromUi()
-  console.log(session)
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { requiredAuthClient } from "@/lib/client/auth-client";
 
-  if(session && (session.role === 'admin' || session.role === 'superAdmin')){
-    redirect('/')
-  }
+export default function AuthLoginLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
-  return (
-    <div className='min-h-screen flex items-center justify-center '>{children}</div>
-  )
+  useEffect(() => {
+    (async () => {
+      const s = await requiredAuthClient();
+      if (s && (s.role === "superAdmin" || s.role === "owner" || s.role === "admin")) {
+        router.replace("/");
+        return;
+      }
+      setLoading(false);
+    })();
+  }, [router]);
+
+  if (loading) return <div className="min-h-screen grid place-items-center">Loading…</div>;
+  return <div className="min-h-screen flex items-center justify-center">{children}</div>;
 }
-
-export default AuthLogin

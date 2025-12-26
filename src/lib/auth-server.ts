@@ -1,31 +1,35 @@
+// src/lib/auth-server.ts
 import { cookies } from "next/headers";
 import { adminAuth, adminDb } from "./firebase-admin";
 
-export async function requiredAuth(){
-    const cookie = await cookies()
-    const token =  cookie.get('session')?.value
-    if(!token) throw Object.assign(new Error("Unauthorized"), {status: 401})
+export type AppRole = "superAdmin" | "owner" | "admin" | null;
+export type SessionUser = { uid: string; email?: string; role: AppRole };
 
-    // Verifikasi toke Firebase
-    const decoded = await adminAuth.verifySessionCookie(token,true).catch(() => null)
-    if(!decoded) throw Object.assign(new Error("Unauthorized"), {status: 401})
+export async function requiredAuth(): Promise<SessionUser> {
+  const cookie = await cookies();
+  const token = cookie.get("session")?.value;
+  if (!token) throw Object.assign(new Error("Unauthorized"), { status: 401 });
 
-    // Ambil role dari firestore
-    const snap = await adminDb.collection("users").doc(decoded.uid).get()
-    const role = snap.exists ? snap.data()?.role : null
-    
+  const decoded = await adminAuth.verifySessionCookie(token, true).catch(() => null);
+  if (!decoded) throw Object.assign(new Error("Unauthorized"), { status: 401 });
 
-    return {uid: decoded.uid, email: decoded.email, role }
+  const snap = await adminDb.collection("users").doc(decoded.uid).get();
+  const role = (snap.exists ? (snap.data()?.role as AppRole) : null) ?? null;
+
+  return { uid: decoded.uid, email: decoded.email, role };
 }
 
-export function requiredAdmin(role?:string){
-    if(role !== 'admin' && role !== 'superAdmin' ){
-        throw Object.assign(new Error("Forbidden"), {status: 403})
-    }
-}
+// Untuk SSR layouts/pages: return null agar bisa redirect halus
+export async function safeAuth(): Promise<SessionUser | null> {
+  const cookie = await cookies();
+  const token = cookie.get("session")?.value;
+  if (!token) return null;
 
-export function requiredSuperAdmin(role?: string){
-    if(role !== 'superAdmin'){
-        throw Object.assign(new Error("Forbidden"), {status: 403})
-    }
+  const decoded = await adminAuth.verifySessionCookie(token, true).catch(() => null);
+  if (!decoded) return null;
+
+  const snap = await adminDb.collection("users").doc(decoded.uid).get();
+  const role = (snap.exists ? (snap.data()?.role as AppRole) : null) ?? null;
+
+  return { uid: decoded.uid, email: decoded.email, role };
 }

@@ -1,12 +1,16 @@
 import {NextResponse} from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import prismaDb from '@/lib/prisma'
-import { requiredAuth, requiredSuperAdmin } from '@/lib/auth-server'
+import { requiredAuth } from '@/lib/auth-server'
 
 export async function POST(req: Request) {
     try {
-        const session = await requiredAuth()
-        requiredSuperAdmin(session.role)
+        const s = await requiredAuth();
+
+    if (!(s.role === "superAdmin" || s.role === "owner")) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
 
         const {email, password, name, role} = await req.json()
 
@@ -69,4 +73,68 @@ export async function POST(req: Request) {
         console.error("[USER_CREATE]", err);
     return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
     }
+}
+
+export async function GET(req: Request) {
+  try {
+    const s = await requiredAuth();
+    if (!(s.role === "superAdmin" || s.role === "owner")) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const q = searchParams.get("q") || "";
+    const page = Math.max(1, Number(searchParams.get("page") || "1"));
+    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || "20")));
+
+    const [items, total] = await Promise.all([
+      prismaDb.user.findMany({
+        where: q? {
+            OR: [
+                {email: {contains: q, mode: 'insensitive'}},
+                {name: {contains: q, mode: 'insensitive'}}
+            ]
+        } : {},
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,           // role global di tabel User
+          createdAt: true,
+          updatedAt: true,
+          stores: {             // relasi StoreUser[]
+            select: {
+              id: true,
+              role: true,       // role di context store: "admin" | "superAdmin"
+              store: { select: { id: true, name: true } },
+            },
+          },
+        },
+      }),
+      prismaDb.user.count({ where: q
+      ? {
+          OR: [
+            { email: { contains: q, mode: "insensitive" } },
+            { name:  { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {} }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        items,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
+  } catch (e: any) {
+    return NextResponse.json({ success: false, message: e.message }, { status: e.status ?? 500 });
+  }
 }

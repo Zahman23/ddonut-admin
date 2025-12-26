@@ -1,45 +1,38 @@
-import BuildStore from "@/components/build-store";
-import { requiredAuth } from "@/lib/auth-server";
-import prismaDb from "@/lib/prisma";
+// src/app/(root)/page.tsx
+import { BuildStore, NotAssignStore } from "@/components/build-store";
+import prisma from "@/lib/prisma";
+import { safeAuth } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 
-
 export default async function Home() {
-const session = await requiredAuth().catch(() => null);
+  const s = await safeAuth();
+  if (!s) redirect("/login?mode=sign-in");
 
-  if (!session) {
-    redirect("/api/auth/logout");
+  if (s.role === "superAdmin" || s.role === "owner") {
+    const first = await prisma.store.findFirst({
+      orderBy: { createdAt: "asc" },
+    });
+    if (!first) return <BuildStore />;
+    redirect(`/${first.id}`);
   }
 
-  // SUPERADMIN / OWNER
-  if (session.role === "superAdmin" || session.role === "owner") {
-    const store = await prismaDb.store.findFirst();
-
-    if (!store) {
-      return <BuildStore />;
-    }
-
-    return redirect(`/${store.id}`);
-  }
-
-  // ADMIN
-  if (session.role === "admin") {
-    const assignedStore = await prismaDb.storeUser.findFirst({
-      where: { userId: session.uid },
-      include: { store: true },
+  if (s.role === "admin") {
+    const assigned = await prisma.storeUser.findFirst({
+      orderBy: { createdAt: "asc" },
     });
 
-    if (!assignedStore) {
-      return (
-        <div className="flex justify-center items-center min-h-screen w-full">
-          Store belum ada, mohon hubungi pemilik toko
-        </div>
-      );
-    }
-
-    return redirect(`/${assignedStore.storeId}`);
+    redirect(`/${assigned?.storeId}`);
   }
 
-  return redirect("/api/auth/logout");
- 
+  // admin
+  const assigned = await prisma.storeUser.findFirst({
+    where: { userId: s.uid },
+    select: { storeId: true },
+  });
+
+  console.log("assigned", assigned);
+
+  if (!assigned) {
+    return <NotAssignStore />;
+  }
 }

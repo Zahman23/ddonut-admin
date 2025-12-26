@@ -4,6 +4,7 @@ import Navbar from '@/components/widgets/navbar'
 import { requireRoleAccess } from '@/lib/store-service'
 import { redirect } from 'next/navigation'
 import prismaDb from '@/lib/prisma'
+import WrapperSettings from './components/wrapper-settings'
 
 interface SettingsPageProps{
   params: Promise<{storeId: string}>
@@ -22,16 +23,7 @@ const SettingsPage = async ({params}: SettingsPageProps) => {
   if (!stores) {
     redirect("/");
   }
-  return (
-    <>
-    <Navbar nameSection={'Settings'} showAction={false} description=''/>
-    <main className='flex-1 overflow-y-auto w-full'>
-        <div className='p-6 max-w-2xl mx-auto'>
-          <FormSetting initialData={stores} role={session.role}/>
-        </div>
-    </main>
-    </>
-  )
+  return <WrapperSettings store={stores} role={session.role}/>
 }
 
 export default SettingsPage

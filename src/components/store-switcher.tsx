@@ -3,7 +3,7 @@
 import { Store } from "@/generated/prisma"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { useState } from "react"
-import { useStoreModal } from "@/store/use-store-modal"
+import { useStoreModal } from "@/stores/use-store-modal"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
@@ -13,13 +13,16 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 type PopOverTriggerProps = React.ComponentPropsWithoutRef<typeof PopoverTrigger>
 
 interface StoreSwitcherProps extends PopOverTriggerProps {
-    items: Store[]
+    items: {
+        id: string,
+        name: string
+    }[],
 }
 
 const StoreSwitcher = (
     {
         className,
-        items = []
+        items = [],
     } : StoreSwitcherProps
 ) => {
     const [open, setOpen] = useState(false)
@@ -59,8 +62,8 @@ const StoreSwitcher = (
                     <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50"/>
                 </Button>
             </PopoverTrigger>
-
-            <PopoverContent className="w-[200px] p-0 bg-white/20 text-white border-white/30">
+            
+                <PopoverContent className="w-[200px] p-0 bg-white/20 text-white border-white/30">
                 <Command>
                     <CommandList>
                             <CommandInput placeholder="Cari Toko"/>
@@ -100,6 +103,7 @@ const StoreSwitcher = (
                         </CommandList>
                 </Command>
             </PopoverContent>
+            
         </Popover>
     );
 }

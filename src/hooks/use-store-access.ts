@@ -1,52 +1,45 @@
-'use client'
+"use client";
 
-import axios from "axios"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react";
+import { useStoreAccessStore } from "@/stores/use-store-access-store";
 
-type Store = {
-    id: string,
-    name: string
-}
+type UserSession = { uid: string; email?: string; role?: string | null } | null;
 
-interface StoreAcess{
-    role: 'superAdmin' | 'owner' | 'admin'
-    stores: Store[]
-}
+export function useStoreAccess() {
+  // Zustand selectors
+  const role    = useStoreAccessStore(s => s.role);
+  const stores  = useStoreAccessStore(s => s.stores);
+  const loading = useStoreAccessStore(s => s.loading);
+  const error   = useStoreAccessStore(s => s.error);
+  const fetchAccess = useStoreAccessStore(s => s.fetchAccess);
 
-const useStoreAccess = () => {
-    const [data, setData] = useState<StoreAcess | null>(null)
-    const [loading,setLoading] = useState<boolean>(true)
-    const [error, setError] = useState<string | null>(null)
+  // session user (email/role) dari endpoint terpisah
+  const [user, setUser] = useState<UserSession>(null);
+  const mounted = useRef(false);
 
-    useEffect(() => {
-        let isMounted = true;
+  // Fetch sekali saat mount (tanpa syarat)
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      fetchAccess().catch(() => {});
+    }
+  }, [fetchAccess]);
 
-        const fetchAccess = async () => {
-            try {
-                const res = await axios.get('/api/stores/access')
-        
-                if(res.status !== 200){
-                    throw new Error(`Failed: ${res.status}`)
-                }
+  // Ambil session user (sekali)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/session", { cache: "no-store" });
+        if (!res.ok) { setUser(null); return; }
+        const json = await res.json();
+        if (active) setUser(json);
+      } catch {
+        if (active) setUser(null);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
-                const body = res.data
-                if(isMounted){
-                    setData({role: body.role, stores: body.stores})
-                }
-            } catch (err: any) {
-                if(isMounted){
-                    setError(err.message || "Error fetching store access")
-                }
-            } finally{
-                if(isMounted) setLoading(false)
-            }
-        }
-
-        fetchAccess()
-        return() => {
-            isMounted = false
-        }
-    },[])
-
-    return {data, loading, error}
+  return { role, stores, loading, error, user, refresh: fetchAccess };
 }

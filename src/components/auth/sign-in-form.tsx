@@ -1,7 +1,7 @@
 'use client'
 
 import { SignInFormData, signInSchema } from '@/schemas/auth/auth-schemas'
-import { useAuthStore } from '@/store/auth/auth-store'
+import { useAuthStore } from '@/stores/auth/auth-store'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import axios, { AxiosError } from 'axios'
@@ -30,19 +30,20 @@ const SignInForm = () => {
     try {
         const res = await axios.post("/api/auth/login", data)
         const body = res.data
-
+        console.log(body)
+        
         if(body.success){
-            setError(null)
             router.replace('/')
-        }else{
+            setError(null)
+            setLoading(false)
+          }else{
             form.resetField('password')
-            setError(body.error)
+            setError(body.message)
+            setLoading(false)
         }
     } catch (err) {
       console.error("Login gagal",err);
-    } finally {
-      setLoading(false);
-    }
+    } 
     }
 
     const handleSocialLogin = () => {
@@ -69,6 +70,7 @@ const SignInForm = () => {
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <Input
+                            disabled={isLoading}
                             type='email'
                             placeholder='Enter your email'
                             value={field.value}
@@ -89,6 +91,7 @@ const SignInForm = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <PasswordInput
+                  disabled={isLoading}
                     placeholder="Enter your password"
                     value={field.value}
                     onChange={field.onChange}

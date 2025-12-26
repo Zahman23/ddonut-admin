@@ -1,61 +1,74 @@
-"use client"
+"use client";
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { PasswordInput } from "./password-input"
-import { signUpSchema, type SignUpFormData } from "@/schemas/auth/auth-schemas"
-import { useAuthStore } from "@/store/auth/auth-store"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import axios from "axios"
-import toast from "react-hot-toast"
-import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "./password-input";
+import { signUpSchema, type SignUpFormData } from "@/schemas/auth/auth-schemas";
+import { useAuthStore } from "@/stores/auth/auth-store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
-interface SignUpFormProps{
-  onClose: () => void
+interface SignUpFormProps {
+  onClose: () => void;
 }
 
-export const  SignUpForm =({onClose}:SignUpFormProps) => {
-  const { isLoading, error, setLoading, setError, setMode, setEmail,reset } = useAuthStore()
-  const router = useRouter()
+const SignUpForm = ({ onClose }: SignUpFormProps) => {
+  const { isLoading, error, setLoading, setError, setMode, setEmail, reset } =
+    useAuthStore();
+  const router = useRouter();
 
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      name:'',
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
       role: "admin",
     },
-  })
+  });
 
   const onSubmit = async (data: SignUpFormData) => {
     // Simulate sign up process
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const res = await axios.post('/api/admin/users',data)
-      const body = res.data
-      if(body.success){
-        console.log(body)
-        onClose()
-        router.refresh()
-        toast.success("User berhasil dibuat")
-      }else{
-        form.resetField('password')
-        form.resetField('confirmPassword')
-        setError(body.error)
+      const res = await axios.post("/api/admin/users", data);
+      const body = res.data;
+      if (body.success) {
+        console.log(body);
+        onClose();
+        router.refresh();
+        toast.success("User berhasil dibuat");
+      } else {
+        form.resetField("password");
+        form.resetField("confirmPassword");
+        setError(body.error);
       }
     } catch (error) {
       console.log("Network error, please try again.");
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div>
@@ -146,21 +159,28 @@ export const  SignUpForm =({onClose}:SignUpFormProps) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role *</FormLabel>
-                  <Select defaultValue={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="owner">Owner</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
+                  <Select
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">Owner</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {error && <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                {error}
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
@@ -183,5 +203,7 @@ export const  SignUpForm =({onClose}:SignUpFormProps) => {
         /> */}
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default SignUpForm;

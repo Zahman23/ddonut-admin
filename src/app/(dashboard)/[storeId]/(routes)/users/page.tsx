@@ -1,8 +1,20 @@
-import React from 'react'
-import WrapperSettings from './components/wrapper-users'
+import React from "react";
+import WrapperUsers from "./components/wrapper-users";
+import { safeAuth } from "@/lib/auth-server";
+import { redirect } from "next/navigation";
 
-const UsersPage = () => {
-  return <WrapperSettings/>
+interface UsersPageProps {
+  params: Promise<{ storeId: string }>;
 }
 
-export default UsersPage
+const UsersPage = async ({ params }: UsersPageProps) => {
+  const s = await safeAuth();
+  const { storeId } = await params;
+
+  if (!(s?.role === "superAdmin" || s?.role === "owner"))
+    redirect(`/${storeId}`);
+
+  return <WrapperUsers role={s.role} storeId={storeId} />;
+};
+
+export default UsersPage;

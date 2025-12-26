@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Container from './ui/container'
-import { useStoreDashboard } from '@/store/use-store-dashboard'
+import { useStoreDashboard } from '@/stores/use-store-dashboard'
 import Navbar from './widgets/navbar'
 import DonutLoader from './ui/loading'
 
